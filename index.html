@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mural Criativo Anônimo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6C5CE7;
+            --secondary: #A8A4FF;
+            --background: #ffffff;
+            --text: #2d3436;
+        }
+
+        [data-theme="dark"] {
+            --primary: #A683FF;
+            --secondary: #7C6AFA;
+            --background: #2d3436;
+            --text: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 50px 0;
+            position: relative;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            cursor: pointer;
+            font-size: 1.5em;
+        }
+
+        .message-form {
+            background: rgba(var(--primary), 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            border: 2px solid var(--primary);
+        }
+
+        .form-control {
+            margin-bottom: 20px;
+        }
+
+        .options-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .format-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 20px;
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            resize: vertical;
+            font-size: 16px;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 0.9em;
+            color: var(--text);
+            opacity: 0.7;
+        }
+
+        .messages-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .message-card {
+            background: rgba(var(--primary), 0.05);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid var(--primary);
+            position: relative;
+            transform: scale(1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .message-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .message-category {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+        }
+
+        .message-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .emoji-picker {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(var(--primary), 0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .emoji-btn {
+            font-size: 1.5em;
+            cursor: pointer;
+            text-align: center;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .emoji-btn:hover {
+            background: rgba(var(--primary), 0.2);
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 1px solid var(--primary);
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            display: none;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-moon"></i>
+        </div>
+
+        <header class="header">
+            <h1>🗨️ Mural Anônimo Criativo</h1>
+            <p>Compartilhe suas ideias, pensamentos e sentimentos livremente</p>
+        </header>
+
+        <div class="message-form">
+            <form id="messageForm">
+                <div class="options-bar">
+                    <button type="button" class="format-btn" onclick="formatText('bold')">
+                        <i class="fas fa-bold"></i>
+                    </button>
+                    <button type="button" class="format-btn" onclick="formatText('italic')">
+                        <i class="fas fa-italic"></i>
+                    </button>
+                    <button type="button" class="format-btn" onclick="formatText('underline')">
+                        <i class="fas fa-underline"></i>
+                    </button>
+                    <select class="format-btn" id="categorySelect">
+                        <option value="Geral">📌 Geral</option>
+                        <option value="Desabafo">😢 Desabafo</option>
+                        <option value="Agradecimento">🙏 Agradecimento</option>
+                        <option value="Ideia">💡 Ideia</option>
+                    </select>
+                </div>
+
+                <div class="emoji-picker" id="emojiPicker"></div>
+                
+                <textarea id="messageInput" placeholder="Escreva sua mensagem aqui..." maxlength="500"></textarea>
+                
+                <div class="char-counter">
+                    <span id="charCount">500</span> caracteres restantes
+                </div>
+
+                <div class="form-control">
+                    <button type="submit" class="format-btn">
+                        <i class="fas fa-paper-plane"></i> Publicar Mensagem
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="filter-bar" id="filterBar"></div>
+        
+        <div class="messages-container" id="messagesContainer"></div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Configurações iniciais
+        const EMOJIS = [...'😀😃😄😁😆😅😂🤣😊😇🙂🙃😉😌😍🥰😘😗😙😚😋😛😝😜🤪🤨🧐🤓😎🤩🥳😏😒😞😔😟😕🙁😣😖😫😩🥺😢😭😤😠😡🤬🤯😳🥵🥶😱😨😰😥😓🤗🤔🤭🤫🤥😶😐😑😬🙄😯😦😧😮😲😪🤤😴😷🤒🤕🤢🤮🤧🥴🥵🥶😵😵💫'];
+        const CATEGORIES = ['Geral', 'Desabafo', 'Agradecimento', 'Ideia'];
+        let currentFilter = 'Todas';
+        let messages = JSON.parse(localStorage.getItem('messages')) || [];
+
+        // Inicialização
+        function init() {
+            initEmojiPicker();
+            initFilterBar();
+            updateThemeIcon();
+            displayMessages();
+            setupCharCounter();
+        }
+
+        // Contador de caracteres
+        function setupCharCounter() {
+            const input = document.getElementById('messageInput');
+            const counter = document.getElementById('charCount');
+            
+            input.addEventListener('input', () => {
+                counter.textContent = 500 - input.value.length;
+            });
+        }
+
+        // Seletor de emojis
+        function initEmojiPicker() {
+            const picker = document.getElementById('emojiPicker');
+            EMOJIS.forEach(emoji => {
+                const btn = document.createElement('div');
+                btn.className = 'emoji-btn';
+                btn.textContent = emoji;
+                btn.onclick = () => {
+                    document.getElementById('messageInput').value += emoji;
+                };
+                picker.appendChild(btn);
+            });
+        }
+
+        // Barra de filtros
+        function initFilterBar() {
+            const filterBar = document.getElementById('filterBar');
+            ['Todas', ...CATEGORIES].forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `filter-btn ${cat === 'Todas' ? 'active' : ''}`;
+                btn.textContent = cat;
+                btn.onclick = () => filterMessages(cat);
+                filterBar.appendChild(btn);
+            });
+        }
+
+        // Filtragem de mensagens
+        function filterMessages(category) {
+            currentFilter = category;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === category);
+            });
+            displayMessages();
+        }
+
+        // Formatação de texto
+        function formatText(style) {
+            const textarea = document.getElementById('messageInput');
+            textarea.focus();
+            document.execCommand(style, false);
+        }
+
+        // Toggle tema
+        function toggleTheme() {
+            document.body.dataset.theme = document.body.dataset.theme === 'dark' ? '' : 'dark';
+            localStorage.setItem('theme', document.body.dataset.theme);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const icon = document.querySelector('.theme-toggle i');
+            icon.className = document.body.dataset.theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        // Mostrar notificação
+        function showNotification(text) {
+            const notification = document.getElementById('notification');
+            notification.textContent = text;
+            notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 3000);
+        }
+
+        // Envio de mensagem
+        document.getElementById('messageForm').onsubmit = function(e) {
+            e.preventDefault();
+            const input = document.getElementById('messageInput');
+            const category = document.getElementById('categorySelect').value;
+
+            if (!input.value.trim()) {
+                showNotification('⚠️ Escreva uma mensagem antes de publicar!');
+                return;
+            }
+
+            const newMessage = {
+                text: input.value,
+                category: category,
+                date: new Date().toLocaleString(),
+                likes: 0
+            };
+
+            messages.unshift(newMessage);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            
+            input.value = '';
+            displayMessages();
+            showNotification('✅ Mensagem publicada com sucesso!');
+        };
+
+        // Exibir mensagens
+        function displayMessages() {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '';
+
+            const filtered = currentFilter === 'Todas' 
+                ? messages 
+                : messages.filter(msg => msg.category === currentFilter);
+
+            filtered.forEach((msg, index) => {
+                const card = document.createElement('div');
+                card.className = 'message-card';
+                card.innerHTML = `
+                    <div class="message-category">${msg.category}</div>
+                    <div class="message-text">${msg.text}</div>
+                    <div class="message-footer">
+                        <span>${msg.date}</span>
+                        <div>
+                            <button onclick="likeMessage(${index})">
+                                <i class="fas fa-heart"></i> ${msg.likes}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Like em mensagens
+        function likeMessage(index) {
+            messages[index].likes++;
+            localStorage.setItem('messages', JSON.stringify(messages));
+            displayMessages();
+        }
+
+        // Carregar tema salvo
+        document.body.dataset.theme = localStorage.getItem('theme') || '';
+        
+        // Iniciar
+        init();
+    </script>
+</body>
+</html>
